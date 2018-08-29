@@ -1118,7 +1118,9 @@ func TestUsageContext(t *testing.T) {
 // tests that sqlx will not panic when the wrong driver is passed because
 // of an automatic nil dereference in sqlx.Open(), which was fixed.
 func TestDoNotPanicOnConnectContext(t *testing.T) {
-	_, err := ConnectContext(context.Background(), "bogus", "hehe")
+	Clear()
+	Register("bogus", "hehe", true)
+	_, err := ConnectContext(context.Background(), true)
 	if err == nil {
 		t.Errorf("Should return error when using bogus driverName")
 	}

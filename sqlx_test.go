@@ -63,7 +63,10 @@ func ConnectAll() {
 	}
 
 	if TestPostgres {
-		pgdb, err = Connect("postgres", pgdsn)
+
+		Clear()
+		Register("postgres", pgdsn, true)
+		pgdb, err = Connect(true)
 		if err != nil {
 			fmt.Printf("Disabling PG tests:\n    %v\n", err)
 			TestPostgres = false
@@ -73,7 +76,9 @@ func ConnectAll() {
 	}
 
 	if TestMysql {
-		mysqldb, err = Connect("mysql", mydsn)
+		Clear()
+		Register("mysql", mydsn, true)
+		mysqldb, err = Connect(true)
 		if err != nil {
 			fmt.Printf("Disabling MySQL tests:\n    %v", err)
 			TestMysql = false
@@ -83,7 +88,9 @@ func ConnectAll() {
 	}
 
 	if TestSqlite {
-		sldb, err = Connect("sqlite3", sqdsn)
+		Clear()
+		Register("sqlite3", sqdsn, true)
+		sldb, err = Connect(true)
 		if err != nil {
 			fmt.Printf("Disabling SQLite:\n    %v", err)
 			TestSqlite = false
@@ -1296,7 +1303,10 @@ type Product struct {
 // tests that sqlx will not panic when the wrong driver is passed because
 // of an automatic nil dereference in sqlx.Open(), which was fixed.
 func TestDoNotPanicOnConnect(t *testing.T) {
-	db, err := Connect("bogus", "hehe")
+	Clear()
+	err := Register("bogus", "hehe", true)
+	t.Log("Should return error when using bogus driverName")
+	db, err := Connect(true)
 	if err == nil {
 		t.Errorf("Should return error when using bogus driverName")
 	}
