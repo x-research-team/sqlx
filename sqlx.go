@@ -16,6 +16,14 @@ import (
 	"github.com/jmoiron/sqlx/reflectx"
 )
 
+var driverMapW = []stringPair{}
+var driverMapR = []stringPair{}
+
+type stringPair struct {
+	first  string
+	second string
+}
+
 // Although the NameMapper is convenient, in practice it should not
 // be relied on except for application code.  If you are writing a library
 // that uses sqlx, you should be aware that the name mappings you expect
@@ -25,16 +33,19 @@ import (
 // it uses strings.ToLower to lowercase struct field names.  It can be set
 // to whatever you want, but it is encouraged to be set before sqlx is used
 // as name-to-field mappings are cached after first use on a type.
-var driverMapW = []stringPair{}
-var driverMapR = []stringPair{}
+var nameMapper = strings.ToLower
 
-type stringPair struct {
-	first  string
-	second string
+//RegisterNameMapper set the name mapper
+func RegisterNameMapper(fn func(s string) string) {
+	nameMapper = fn
 }
 
-var NameMapper = strings.ToLower
-var origMapper = reflect.ValueOf(NameMapper)
+//CurrentNameMapper get the name mapper, allow applicaiton developer to check which method is using
+func CurrentNameMapper() func(s string) string {
+	return nameMapper
+}
+
+var origMapper = reflect.ValueOf(nameMapper)
 
 // Rather than creating on init, this is created when necessary so that
 // importers have time to customize the NameMapper.
@@ -49,11 +60,11 @@ func mapper() *reflectx.Mapper {
 	defer mprMu.Unlock()
 
 	if mpr == nil {
-		mpr = reflectx.NewMapperFunc("db", NameMapper)
-	} else if origMapper != reflect.ValueOf(NameMapper) {
-		// if NameMapper has changed, create a new mapper
-		mpr = reflectx.NewMapperFunc("db", NameMapper)
-		origMapper = reflect.ValueOf(NameMapper)
+		mpr = reflectx.NewMapperFunc("db", nameMapper)
+	} else if origMapper != reflect.ValueOf(nameMapper) {
+		// if nameMapper has changed, create a new mapper
+		mpr = reflectx.NewMapperFunc("db", nameMapper)
+		origMapper = reflect.ValueOf(nameMapper)
 	}
 	return mpr
 }
@@ -270,28 +281,11 @@ func (db *DB) DriverName() string {
 	return db.driverName
 }
 
-// // Open is the same as sql.Open, but returns an *sqlx.DB instead.
-// func Open(driverName, dataSourceName string) (*DB, error) {
-// 	db, err := sql.Open(driverName, dataSourceName)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &DB{DB: db, driverName: driverName, Mapper: mapper()}, err
-// }
-
-// // MustOpen is the same as sql.Open, but returns an *sqlx.DB instead and panics on error.
-// func MustOpen(driverName, dataSourceName string) *DB {
-// 	db, err := Open(driverName, dataSourceName)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return db
-// }
-
 //Clear clear registered drivers
 func Clear() {
 	driverMapW = []stringPair{}
 	driverMapR = []stringPair{}
+	nameMapper = strings.ToLower
 }
 
 //Register add new driver for
@@ -301,7 +295,6 @@ func Register(driverName, dataSourceName string, isWritable bool) error {
 		return err
 	}
 	defer db.Close()
-	fmt.Println("C3", driverName)
 	err = db.Ping()
 	if err != nil {
 		return err
