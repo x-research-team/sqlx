@@ -297,10 +297,11 @@ func Clear() {
 //Register add new driver for
 func Register(driverName, dataSourceName string, isWritable bool) error {
 	db, err := sql.Open(driverName, dataSourceName)
-	defer db.Close()
 	if err != nil {
 		return err
 	}
+	defer db.Close()
+	fmt.Println("C3", driverName)
 	err = db.Ping()
 	if err != nil {
 		return err
