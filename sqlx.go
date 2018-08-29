@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"math/rand"
 
 	"io/ioutil"
 	"path/filepath"
@@ -24,6 +25,14 @@ import (
 // it uses strings.ToLower to lowercase struct field names.  It can be set
 // to whatever you want, but it is encouraged to be set before sqlx is used
 // as name-to-field mappings are cached after first use on a type.
+var driverMapW = []stringPair{}
+var driverMapR = []stringPair{}
+
+type stringPair struct {
+	first  string
+	second string
+}
+
 var NameMapper = strings.ToLower
 var origMapper = reflect.ValueOf(NameMapper)
 
@@ -261,22 +270,79 @@ func (db *DB) DriverName() string {
 	return db.driverName
 }
 
-// Open is the same as sql.Open, but returns an *sqlx.DB instead.
-func Open(driverName, dataSourceName string) (*DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-	return &DB{DB: db, driverName: driverName, Mapper: mapper()}, err
+// // Open is the same as sql.Open, but returns an *sqlx.DB instead.
+// func Open(driverName, dataSourceName string) (*DB, error) {
+// 	db, err := sql.Open(driverName, dataSourceName)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &DB{DB: db, driverName: driverName, Mapper: mapper()}, err
+// }
+
+// // MustOpen is the same as sql.Open, but returns an *sqlx.DB instead and panics on error.
+// func MustOpen(driverName, dataSourceName string) *DB {
+// 	db, err := Open(driverName, dataSourceName)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return db
+// }
+
+//Clear clear registered drivers
+func Clear() {
+	driverMapW = []stringPair{}
+	driverMapR = []stringPair{}
 }
 
-// MustOpen is the same as sql.Open, but returns an *sqlx.DB instead and panics on error.
-func MustOpen(driverName, dataSourceName string) *DB {
-	db, err := Open(driverName, dataSourceName)
+//Register add new driver for
+func Register(driverName, dataSourceName string, isWritable bool) error {
+	db, err := sql.Open(driverName, dataSourceName)
+	defer db.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
-	return db
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
+	if isWritable {
+		driverMapW = append(driverMapW, stringPair{driverName, dataSourceName})
+	} else {
+		driverMapR = append(driverMapR, stringPair{driverName, dataSourceName})
+	}
+	return nil
+}
+
+func copyRand(in []stringPair) []stringPair {
+	length := len(in)
+	idx := rand.Perm(length)
+	dbs := make([]stringPair, length)
+	for i, v := range idx {
+		dbs[v] = in[i]
+	}
+	return dbs
+}
+
+//Connect open a connection from connection string pool and validated by a ping
+func Connect(needWritable bool) (*DB, error) {
+	var dbs []stringPair
+	if needWritable {
+		dbs = copyRand(driverMapW)
+	} else {
+		dbs = copyRand(driverMapR)
+	}
+	for _, pair := range dbs {
+		db, err := sql.Open(pair.first, pair.second)
+		if err != nil {
+			continue
+		}
+		err = db.Ping()
+		if err != nil {
+			continue
+		}
+		return &DB{DB: db, driverName: pair.first, Mapper: mapper()}, nil
+	}
+	return nil, errors.New("no available database")
 }
 
 // MapperFunc sets a new mapper for this db using the default sqlx struct tag
@@ -631,28 +697,28 @@ func (r *Rows) StructScan(dest interface{}) error {
 	return r.Err()
 }
 
-// Connect to a database and verify with a ping.
-func Connect(driverName, dataSourceName string) (*DB, error) {
-	db, err := Open(driverName, dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-	err = db.Ping()
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	return db, nil
-}
+// // Connect to a database and verify with a ping.
+// func Connect(driverName, dataSourceName string) (*DB, error) {
+// 	db, err := Open(driverName, dataSourceName)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = db.Ping()
+// 	if err != nil {
+// 		db.Close()
+// 		return nil, err
+// 	}
+// 	return db, nil
+// }
 
-// MustConnect connects to a database and panics on error.
-func MustConnect(driverName, dataSourceName string) *DB {
-	db, err := Connect(driverName, dataSourceName)
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
+// // MustConnect connects to a database and panics on error.
+// func MustConnect(driverName, dataSourceName string) *DB {
+// 	db, err := Connect(driverName, dataSourceName)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	return db
+// }
 
 // Preparex prepares a statement.
 func Preparex(p Preparer, query string) (*Stmt, error) {

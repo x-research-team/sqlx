@@ -12,8 +12,8 @@ import (
 )
 
 // ConnectContext to a database and verify with a ping.
-func ConnectContext(ctx context.Context, driverName, dataSourceName string) (*DB, error) {
-	db, err := Open(driverName, dataSourceName)
+func ConnectContext(ctx context.Context, writable bool) (*DB, error) {
+	db, err := Connect(writable)
 	if err != nil {
 		return db, err
 	}
