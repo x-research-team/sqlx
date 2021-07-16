@@ -330,6 +330,10 @@ func Connect(needWritable bool) (*DB, error) {
 		if err != nil {
 			continue
 		}
+		db.SetConnMaxIdleTime(MaxIdleTime)
+		db.SetMaxIdleConns(MaxIdleConns)
+		db.SetConnMaxLifetime(MaxLifetime)
+		db.SetMaxOpenConns(MaxOpenConns)
 		return &DB{DB: db, driverName: pair.first, Mapper: mapper()}, nil
 	}
 	return nil, errors.New("no available database")
