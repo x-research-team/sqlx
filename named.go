@@ -22,7 +22,7 @@ import (
 
 	"github.com/goccy/go-reflect"
 
-	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/x-research-team/sqlx/reflectx"
 )
 
 // NamedStmt is a prepared statement that executes named queries.  Prepare it

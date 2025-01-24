@@ -13,7 +13,7 @@ import (
 
 	"github.com/goccy/go-reflect"
 
-	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/x-research-team/sqlx/reflectx"
 )
 
 var driverMapW = []stringPair{}

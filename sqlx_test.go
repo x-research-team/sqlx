@@ -19,14 +19,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goccy/go-json"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/goccy/go-json"
 	"github.com/goccy/go-reflect"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/x-research-team/sqlx/reflectx"
 )
 
 /* compile time checks that Db, Tx, Stmt (qStmt) implement expected interfaces */

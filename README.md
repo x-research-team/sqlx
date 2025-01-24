@@ -1,9 +1,9 @@
 # clustersqlx
-https://github.com/c-foundation/clustersqlx
+https://github.com/x-research-team/sqlx
 
-entry point of how to open a connection is imcompatable to original sqlx 
+entry point of how to open a connection is imcompatable to original sqlx
 
-[![Build Status](https://travis-ci.org/c-foundation/clustersqlx.svg?branch=master)](https://travis-ci.org/c-foundation/clustersqlx) [![Coverage Status](https://coveralls.io/repos/github/c-foundation/clustersqlx/badge.svg?branch=master)](https://coveralls.io/github/c-foundation/clustersqlx?branch=master) [![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/c-foundation/clustersqlx) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/c-foundation/clustersqlx/master/LICENSE)
+[![Build Status](https://travis-ci.org/c-foundation/clustersqlx.svg?branch=master)](https://travis-ci.org/c-foundation/clustersqlx) [![Coverage Status](https://coveralls.io/repos/github/c-foundation/clustersqlx/badge.svg?branch=master)](https://coveralls.io/github/c-foundation/clustersqlx?branch=master) [![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/x-research-team/sqlx) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/c-foundation/clustersqlx/master/LICENSE)
 
 sqlx is a library which provides a set of extensions on go's standard
 `database/sql` library.  The sqlx versions of `sql.DB`, `sql.TX`, `sql.Stmt`,
@@ -17,7 +17,7 @@ Major additional concepts are:
 * Named parameter support including prepared statements
 * `Get` and `Select` to go quickly from query to struct/slice
 
-In addition to the [godoc API documentation](http://godoc.org/github.com/c-foundation/clustersqlx),
+In addition to the [godoc API documentation](http://godoc.org/github.com/x-research-team/sqlx),
 there is also some [user documentation](http://jmoiron.github.io/sqlx/) that
 explains how to use `database/sql` along with sqlx.
 
@@ -50,7 +50,7 @@ will get major version number bumps.
 
 ## install
 
-    go get github.com/c-foundation/clustersqlx
+    go get github.com/x-research-team/sqlx
 
 ## issues
 
@@ -62,12 +62,12 @@ SELECT a.id, a.name, b.id, b.name FROM foos AS a JOIN foos AS b ON a.parent = b.
 ```
 
 making a struct or map destination ambiguous.  Use `AS` in your queries
-to give columns distinct names, `rows.Scan` to scan them manually, or 
+to give columns distinct names, `rows.Scan` to scan them manually, or
 `SliceScan` to get a slice of results.
 
 ## usage
 
-Below is an example which shows some common use cases for clustersqlx. 
+Below is an example which shows some common use cases for clustersqlx.
 
 
 ```go
@@ -77,9 +77,9 @@ import (
     "database/sql"
     "fmt"
     "log"
-    
+
     _ "github.com/lib/pq"
-    "github.com/c-foundation/clustersqlx"
+    "github.com/x-research-team/sqlx"
 )
 
 var schema = `
@@ -110,7 +110,7 @@ type Place struct {
 func main() {
     // this Pings the database trying to connect
     // use sqlx.Open() for sql.Open() semantics
-    
+
 	sqlx.Clear()
     err := sqlx.Register("mysql", "master:password@tcp(192.168.1.181:3306)/cf_login?charset=utf8&collation=utf8_general_ci&loc=UTC", true)
     if err != nil {
@@ -132,7 +132,7 @@ func main() {
     if err != nil {
         log.Fatalln("fail to connect slive: 192.168.1.193", err)
     }
-    
+
     db, err := sqlx.Connect(true)// get a writable db
 
     // db, err := sqlx.Connect(false)// get a readonly db
@@ -140,7 +140,7 @@ func main() {
     // exec the schema or fail; multi-statement Exec behavior varies between
     // database drivers;  pq will exec them all, sqlite3 won't, ymmv
     db.MustExec(schema)
-    
+
     tx := db.MustBegin()
     tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)", "Jason", "Moiron", "jmoiron@jmoiron.net")
     tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)", "John", "Doe", "johndoeDNE@gmail.net")
@@ -174,7 +174,7 @@ func main() {
         return
     }
     usa, singsing, honkers := places[0], places[1], places[2]
-    
+
     fmt.Printf("%#v\n%#v\n%#v\n", usa, singsing, honkers)
     // Place{Country:"United States", City:sql.NullString{String:"New York", Valid:true}, TelCode:1}
     // Place{Country:"Singapore", City:sql.NullString{String:"", Valid:false}, TelCode:65}
@@ -187,7 +187,7 @@ func main() {
         err := rows.StructScan(&place)
         if err != nil {
             log.Fatalln(err)
-        } 
+        }
         fmt.Printf("%#v\n", place)
     }
     // Place{Country:"United States", City:sql.NullString{String:"New York", Valid:true}, TelCode:1}
@@ -196,7 +196,7 @@ func main() {
 
     // Named queries, using `:name` as the bindvar.  Automatic bindvar support
     // which takes into account the dbtype based on the driverName on sqlx.Open/Connect
-    _, err = db.NamedExec(`INSERT INTO person (first_name,last_name,email) VALUES (:first,:last,:email)`, 
+    _, err = db.NamedExec(`INSERT INTO person (first_name,last_name,email) VALUES (:first,:last,:email)`,
         map[string]interface{}{
             "first": "Bin",
             "last": "Smuth",
@@ -210,10 +210,10 @@ func main() {
     // as the name -> db mapping, so struct fields are lowercased and the `db` tag
     // is taken into consideration.
     rows, err = db.NamedQuery(`SELECT * FROM person WHERE first_name=:first_name`, jason)
-    
-    
+
+
     // batch insert
-    
+
     // batch insert with structs
     personStructs := []Person{
         {FirstName: "Ardie", LastName: "Savea", Email: "asavea@ab.co.nz"},
