@@ -3,14 +3,14 @@
 // allows for Go-compatible named attribute access, including accessing embedded
 // struct attributes and the ability to use  functions and struct tags to
 // customize field names.
-//
 package reflectx
 
 import (
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-reflect"
 )
 
 // A FieldInfo is metadata for a struct field.

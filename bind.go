@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"errors"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-reflect"
 
 	"github.com/jmoiron/sqlx/reflectx"
 )

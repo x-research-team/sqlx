@@ -1,3 +1,4 @@
+//go:build go1.8
 // +build go1.8
 
 package sqlx
@@ -6,9 +7,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
-	"reflect"
+
+	"github.com/goccy/go-reflect"
 )
 
 // ConnectContext to a database and verify with a ping.
@@ -99,7 +101,7 @@ func LoadFileContext(ctx context.Context, e ExecerContext, path string) (*sql.Re
 	if err != nil {
 		return nil, err
 	}
-	contents, err := ioutil.ReadFile(realpath)
+	contents, err := os.ReadFile(realpath)
 	if err != nil {
 		return nil, err
 	}

@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-
-	"io/ioutil"
+	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-reflect"
 
 	"github.com/jmoiron/sqlx/reflectx"
 )
@@ -35,12 +35,12 @@ type stringPair struct {
 // as name-to-field mappings are cached after first use on a type.
 var nameMapper = strings.ToLower
 
-//RegisterNameMapper set the name mapper
+// RegisterNameMapper set the name mapper
 func RegisterNameMapper(fn func(s string) string) {
 	nameMapper = fn
 }
 
-//CurrentNameMapper get the name mapper, allow applicaiton developer to check which method is using
+// CurrentNameMapper get the name mapper, allow applicaiton developer to check which method is using
 func CurrentNameMapper() func(s string) string {
 	return nameMapper
 }
@@ -71,9 +71,9 @@ func mapper() *reflectx.Mapper {
 
 // isScannable takes the reflect.Type and the actual dest value and returns
 // whether or not it's Scannable.  Something is scannable if:
-//   * it is not a struct
-//   * it implements sql.Scanner
-//   * it has no exported fields
+//   - it is not a struct
+//   - it implements sql.Scanner
+//   - it has no exported fields
 func isScannable(t reflect.Type) bool {
 	if reflect.PtrTo(t).Implements(_scannerInterface) {
 		return true
@@ -277,14 +277,14 @@ func (db *DB) DriverName() string {
 	return db.driverName
 }
 
-//Clear clear registered drivers
+// Clear clear registered drivers
 func Clear() {
 	driverMapW = []stringPair{}
 	driverMapR = []stringPair{}
 	nameMapper = strings.ToLower
 }
 
-//Register add new driver for
+// Register add new driver for
 func Register(driverName, dataSourceName string, isWritable bool) error {
 	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
@@ -313,7 +313,7 @@ func copyRand(in []stringPair) []stringPair {
 	return dbs
 }
 
-//Connect open a connection from connection string pool and validated by a ping
+// Connect open a connection from connection string pool and validated by a ping
 func Connect(needWritable bool) (*DB, error) {
 	var dbs []stringPair
 	if needWritable {
@@ -770,7 +770,7 @@ func LoadFile(e Execer, path string) (*sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	contents, err := ioutil.ReadFile(realpath)
+	contents, err := os.ReadFile(realpath)
 	if err != nil {
 		return nil, err
 	}
@@ -947,9 +947,9 @@ func structOnlyError(t reflect.Type) error {
 // each row must only have one column which can scan into that type.  This
 // allows you to do something like:
 //
-//    rows, _ := db.Query("select id from people;")
-//    var ids []int
-//    scanAll(rows, &ids, false)
+//	rows, _ := db.Query("select id from people;")
+//	var ids []int
+//	scanAll(rows, &ids, false)
 //
 // and ids will be a list of the id results.  I realize that this is a desirable
 // interface to expose to users, but for now it will only be exposed via changes

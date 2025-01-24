@@ -1,31 +1,32 @@
 // The following environment variables, if set, will be used:
 //
-//	* SQLX_SQLITE_DSN
-//	* SQLX_POSTGRES_DSN
-//	* SQLX_MYSQL_DSN
+//   - SQLX_SQLITE_DSN
+//   - SQLX_POSTGRES_DSN
+//   - SQLX_MYSQL_DSN
 //
 // Set any of these variables to 'skip' to skip them.  Note that for MySQL,
 // the string '?parseTime=True' will be appended to the DSN if it's not there
 // already.
-//
 package sqlx
 
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
+
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/goccy/go-reflect"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 /* compile time checks that Db, Tx, Stmt (qStmt) implement expected interfaces */
@@ -1761,7 +1762,7 @@ func BenchmarkBindStruct(b *testing.B) {
 
 func TestBindNamedMapper(t *testing.T) {
 	type A map[string]interface{}
-	m := reflectx.NewMapperFunc("db", NameMapper)
+	m := reflectx.NewMapperFunc("db", nameMapper)
 	query, args, err := bindNamedMapper(DOLLAR, `select :x`, A{
 		"x": "X!",
 	}, m)

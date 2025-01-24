@@ -16,10 +16,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strconv"
 	"unicode"
+
+	"github.com/goccy/go-reflect"
 
 	"github.com/jmoiron/sqlx/reflectx"
 )

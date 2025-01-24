@@ -1,9 +1,10 @@
 package reflectx
 
 import (
-	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/goccy/go-reflect"
 )
 
 func ival(v reflect.Value) int {
